@@ -1,0 +1,2 @@
+flamapy
+flamapy-configurator @ https://github.com/flamapy/configurator_metamodel/archive/refs/heads/main.zip
