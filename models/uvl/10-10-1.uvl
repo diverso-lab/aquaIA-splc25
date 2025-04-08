@@ -1,0 +1,21 @@
+features
+	root 
+		mandatory
+			F1 
+		mandatory
+			F2 
+		optional
+			F3 
+		mandatory
+			F4 
+				mandatory
+					F8 
+				mandatory
+					F9 
+		optional
+			F5 
+		alternative
+			F6 
+			F7 
+constraints
+	F1 => ! F4

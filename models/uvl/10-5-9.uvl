@@ -1,0 +1,16 @@
+features
+	root 
+		mandatory
+			F1 
+		optional
+			F2 
+		or
+			F3 
+			F4 
+		or
+			F5 
+			F6 
+		alternative
+			F7 
+			F8 
+			F9 
