@@ -32,18 +32,32 @@ def xml_to_uvl():
             print(f'File: {file}')
             dm = DiscoverMetamodels()
             feature_model = dm.use_transformation_t2m('./models/betty/'+file,'fm')
-            print(feature_model)
             dm.use_transformation_m2t(feature_model,'./models/uvl/'+file.split('/')[-1].split('.')[0]+'.uvl')
 
 def run_experiments():
-    # Run the experiments
+    results_file = 'results.csv'
+    processed_files = set()
+
+    # Leer los nombres de archivo que ya están en results.csv
+    if os.path.exists(results_file):
+        with open(results_file, 'r') as f:
+            for line in f:
+                filename = line.strip().split(',')[0]
+                processed_files.add(filename)
+
+    # Procesar solo los archivos que no han sido ejecutados
     for file in os.listdir('./models/uvl/'):
+        if file in processed_files:
+            print(f'Skipping already processed file: {file}')
+            continue
+
+        print(f'Processing file: {file}')
         dm = DiscoverMetamodels()
-        feature_model = dm.use_transformation_t2m('./models/uvl/'+file,'fm')
+        feature_model = dm.use_transformation_t2m('./models/uvl/' + file, 'fm')
         configurator_metamodel = FmToConfigurator(feature_model).transform()
         configure_operation = Configure().execute(configurator_metamodel)
-        print(file)
-        #Operacion de configuracion.
+
+        # Operación de configuración
         start_time = time.perf_counter()
 
         while configure_operation.next_question():
@@ -53,8 +67,8 @@ def run_experiments():
         end_time = time.perf_counter()
         elapsed_time = end_time - start_time
 
-        #save in csv file
-        with open('results.csv', 'a') as f:
+        # Guardar en CSV
+        with open(results_file, 'a') as f:
             f.write(f'{file},{elapsed_time}\n')
         print(f'File: {file}, elapsed time: {elapsed_time}')
 
@@ -128,6 +142,8 @@ def print_charts():
 
 
 def main():
+    show_ascii_art()
+
     parser = argparse.ArgumentParser(
         description="DiversoLab CLI - Run experiments and visualize results.",
         formatter_class=argparse.RawTextHelpFormatter
@@ -143,8 +159,6 @@ def main():
     )
 
     args = parser.parse_args()
-
-    show_ascii_art()
 
     if args.action == "xml_to_uvl":
         xml_to_uvl()
