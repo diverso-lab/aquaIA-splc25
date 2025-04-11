@@ -22,12 +22,11 @@ def run_experiments():
     for file in os.listdir('./models/uvl/'):
         dm = DiscoverMetamodels()
         feature_model = dm.use_transformation_t2m('./models/uvl/'+file,'fm')
- 
+        configurator = FmToConfigurator(feature_model).transform()
         print(file)
         #Operacion de configuracion.
         start_time = time.perf_counter()
 
-        configurator = FmToConfigurator(feature_model).transform()
         while configurator.next_question():
             if configurator.get_possible_options():
                 configurator.answer_question([0])
@@ -111,5 +110,5 @@ def print_charts():
 
 if __name__ == '__main__':
     #xml_to_uvl()
-    run_experiments()
+    #run_experiments()
     print_charts()
