@@ -2,10 +2,26 @@ import time
 import os
 from flamapy.core.discover import DiscoverMetamodels
 from flamapy.metamodels.configurator_metamodel.transformation import FmToConfigurator
+from flamapy.metamodels.configurator_metamodel.operations.configure import Configure
 import pandas as pd
 import matplotlib.pyplot as plt
 import re
 from collections import defaultdict
+
+def show_ascii_art():
+    art = r"""
+ _______   __                                                    __                  __       
+/       \ /  |                                                  /  |                /  |      
+$$$$$$$  |$$/  __     __  ______    ______    _______   ______  $$ |        ______  $$ |____  
+$$ |  $$ |/  |/  \   /  |/      \  /      \  /       | /      \ $$ |       /      \ $$      \ 
+$$ |  $$ |$$ |$$  \ /$$//$$$$$$  |/$$$$$$  |/$$$$$$$/ /$$$$$$  |$$ |       $$$$$$  |$$$$$$$  |
+$$ |  $$ |$$ | $$  /$$/ $$    $$ |$$ |  $$/ $$      \ $$ |  $$ |$$ |       /    $$ |$$ |  $$ |
+$$ |__$$ |$$ |  $$ $$/  $$$$$$$$/ $$ |       $$$$$$  |$$ \__$$ |$$ |_____ /$$$$$$$ |$$ |__$$ |
+$$    $$/ $$ |   $$$/   $$       |$$ |      /     $$/ $$    $$/ $$       |$$    $$ |$$    $$/ 
+$$$$$$$/  $$/     $/     $$$$$$$/ $$/       $$$$$$$/   $$$$$$/  $$$$$$$$/  $$$$$$$/ $$$$$$$/  
+    """
+    print(art)
+    print("\nWelcome to the aquaIA configurator experiments\n")
 
 
 def xml_to_uvl():
@@ -22,14 +38,15 @@ def run_experiments():
     for file in os.listdir('./models/uvl/'):
         dm = DiscoverMetamodels()
         feature_model = dm.use_transformation_t2m('./models/uvl/'+file,'fm')
-        configurator = FmToConfigurator(feature_model).transform()
+        configurator_metamodel = FmToConfigurator(feature_model).transform()
+        configure_operation = Configure().execute(configurator_metamodel)
         print(file)
         #Operacion de configuracion.
         start_time = time.perf_counter()
 
-        while configurator.next_question():
-            if configurator.get_possible_options():
-                configurator.answer_question([0])
+        while configure_operation.next_question():
+            if configure_operation.get_possible_options():
+                configure_operation.answer_question([0])
 
         end_time = time.perf_counter()
         elapsed_time = end_time - start_time
@@ -108,7 +125,34 @@ def print_charts():
 
 
 
-if __name__ == '__main__':
-    #xml_to_uvl()
-    #run_experiments()
-    print_charts()
+def main():
+    parser = argparse.ArgumentParser(
+        description="DiversoLab CLI - Run experiments and visualize results.",
+        formatter_class=argparse.RawTextHelpFormatter
+    )
+
+    parser.add_argument(
+        "action",
+        choices=["xml_to_uvl", "run_experiments", "print_charts"],
+        help="Action to perform:\n"
+             "  xml_to_uvl       Convert .xml files to .uvl\n"
+             "  run_experiments  Run configuration experiments\n"
+             "  print_charts     Generate charts from results.csv"
+    )
+
+    args = parser.parse_args()
+
+    show_ascii_art()
+
+    if args.action == "xml_to_uvl":
+        xml_to_uvl()
+    elif args.action == "run_experiments":
+        run_experiments()
+    elif args.action == "print_charts":
+        print_charts()
+    else:
+        print("Unknown action. Use --help for options.")
+
+
+if __name__ == "__main__":
+    main()
