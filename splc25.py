@@ -106,7 +106,7 @@ def plot_time_vs_features(csv_path):
     plt.tight_layout()
 
     # Show the plot
-    plt.show()
+    plt.savefig("timeVSfeats.pdf")
 
 
 def plot_time_vs_cross_tree(csv_path):
@@ -141,7 +141,7 @@ def plot_time_vs_cross_tree(csv_path):
     plt.legend(title="Number of Features")
     plt.grid(True)
     plt.tight_layout()
-    plt.show()
+    plt.savefig("timeVSctc.pdf")
 
 def print_charts(csv_path: str = 'results.csv'):
     steps = ['Plotting time vs features', 'Plotting time vs cross-tree']
