@@ -74,68 +74,87 @@ def run_experiments(results_file: str = 'results.csv'):
         # print(f'File: {file}, elapsed time: {elapsed_time}')
 
 def plot_time_vs_features(csv_path):
-	# Load the CSV file
-	df = pd.read_csv(csv_path, header=None, names=["filename", "elapsed_time"])
+    # Load the CSV file
+    df = pd.read_csv(csv_path, header=None, names=["filename", "elapsed_time"])
 
-	# Extract x (features), y (cross-tree %), z (id) from filename
-	pattern = re.compile(r"(\d+)-(\d+)-(\d+)\.uvl")
-	df[['features', 'cross_tree', 'id']] = df['filename'].str.extract(pattern).astype(int)
+    # Extract x (features), y (cross-tree %), z (id) from filename
+    pattern = re.compile(r"(\d+)-(\d+)-(\d+)\.uvl")
+    df[['features', 'cross_tree', 'id']] = df['filename'].str.extract(pattern).astype(int)
 
-	# Group by 'features' and 'cross_tree', and calculate mean time
-	grouped = df.groupby(['features', 'cross_tree'])['elapsed_time'].mean().reset_index()
+    # Group by 'features' and 'cross_tree', and calculate mean time
+    grouped = df.groupby(['features', 'cross_tree'])['elapsed_time'].mean().reset_index()
 
-	# Prepare the plot
-	plt.figure(figsize=(10, 6))
+    # Prepare the plot
+    plt.figure(figsize=(10, 6))
 
-	# Plot each line: one per cross_tree value
-	for cross_tree_value in sorted(grouped['cross_tree'].unique()):
-		subset = grouped[grouped['cross_tree'] == cross_tree_value]
-		plt.plot(subset['features'], subset['elapsed_time'], marker='o', label=f'CTC {cross_tree_value}%')
+    # Plot each line: one per cross_tree value
+    for cross_tree_value in sorted(grouped['cross_tree'].unique()):
+        subset = grouped[grouped['cross_tree'] == cross_tree_value]
+        plt.plot(subset['features'], subset['elapsed_time'], marker='o', label=f'CTC {cross_tree_value}%')
 
-	# Styling
-	plt.title("Elapsed Time vs Number of Features")
-	plt.xlabel("Number of Features")
-	plt.ylabel("Mean Elapsed Time (s)")
-	plt.xscale("log")
-	plt.legend(title="Cross Tree Constraints")
-	plt.grid(True)
-	plt.tight_layout()
-	plt.show()
+    # Styling
+    plt.title("Elapsed Time vs Number of Features")
+    plt.xlabel("Number of Features")
+    plt.ylabel("Mean Elapsed Time (s)")
+    
+    # Set Y-axis to log scale
+    plt.yscale("log")
+
+    # Show grid, and set a tight layout for aesthetics
+    plt.legend(title="Cross Tree Constraints")
+    plt.grid(True)
+    plt.tight_layout()
+
+    # Show the plot
+    plt.show()
+
 
 def plot_time_vs_cross_tree(csv_path):
-	import pandas as pd
-	import matplotlib.pyplot as plt
-	import re
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import re
 
-	# Load and parse data
-	df = pd.read_csv(csv_path, header=None, names=["filename", "elapsed_time"])
-	pattern = re.compile(r"(\d+)-(\d+)-(\d+)\.uvl")
-	df[['features', 'cross_tree', 'id']] = df['filename'].str.extract(pattern).astype(int)
+    # Load and parse data
+    df = pd.read_csv(csv_path, header=None, names=["filename", "elapsed_time"])
+    pattern = re.compile(r"(\d+)-(\d+)-(\d+)\.uvl")
+    df[['features', 'cross_tree', 'id']] = df['filename'].str.extract(pattern).astype(int)
 
-	# Group by 'features' and 'cross_tree', and calculate mean time
-	grouped = df.groupby(['cross_tree', 'features'])['elapsed_time'].mean().reset_index()
+    # Group by 'features' and 'cross_tree', and calculate mean time
+    grouped = df.groupby(['cross_tree', 'features'])['elapsed_time'].mean().reset_index()
 
-	# Prepare the plot
-	plt.figure(figsize=(10, 6))
+    # Prepare the plot
+    plt.figure(figsize=(10, 6))
 
-	# Plot each line: one per number of features
-	for feature_value in sorted(grouped['features'].unique()):
-		subset = grouped[grouped['features'] == feature_value]
-		plt.plot(subset['cross_tree'], subset['elapsed_time'], marker='o', label=f'{feature_value} features')
+    # Plot each line: one per number of features
+    for feature_value in sorted(grouped['features'].unique()):
+        subset = grouped[grouped['features'] == feature_value]
+        plt.plot(subset['cross_tree'], subset['elapsed_time'], marker='o', label=f'{feature_value} features')
 
-	# Styling
-	plt.title("Elapsed Time vs Cross Tree Constraints")
-	plt.xlabel("Cross Tree Constraints (%)")
-	plt.ylabel("Mean Elapsed Time (s)")
-	plt.legend(title="Number of Features")
-	plt.grid(True)
-	plt.tight_layout()
-	plt.show()
+    # Styling
+    plt.title("Elapsed Time vs Cross Tree Constraints")
+    plt.xlabel("Cross Tree Constraints (%)")
+    plt.ylabel("Mean Elapsed Time (s)")
+    
+    # Set Y-axis to log scale
+    plt.yscale("log")
 
+    plt.legend(title="Number of Features")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
 
 def print_charts(csv_path: str = 'results.csv'):
-    plot_time_vs_features(csv_path)
-    plot_time_vs_cross_tree(csv_path)
+    steps = ['Plotting time vs features', 'Plotting time vs cross-tree']
+    pbar = tqdm(steps, desc="Generating charts", unit="step")
+
+    for step in pbar:
+        pbar.set_postfix(task=step)
+        if step == 'Plotting time vs features':
+            plot_time_vs_features(csv_path)
+        elif step == 'Plotting time vs cross-tree':
+            plot_time_vs_cross_tree(csv_path)
+
+    pbar.close()
 
 
 def main():
