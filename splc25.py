@@ -1,6 +1,7 @@
 import time
 import os
 import argparse
+from tqdm import tqdm
 
 from flamapy.core.discover import DiscoverMetamodels
 from flamapy.metamodels.configurator_metamodel.transformation import FmToConfigurator
@@ -34,30 +35,29 @@ def xml_to_uvl():
             feature_model = dm.use_transformation_t2m('./models/betty/'+file,'fm')
             dm.use_transformation_m2t(feature_model,'./models/uvl/'+file.split('/')[-1].split('.')[0]+'.uvl')
 
-def run_experiments():
-    results_file = 'results.csv'
+def run_experiments(results_file: str = 'results.csv'):
     processed_files = set()
 
-    # Leer los nombres de archivo que ya están en results.csv
     if os.path.exists(results_file):
         with open(results_file, 'r') as f:
             for line in f:
                 filename = line.strip().split(',')[0]
                 processed_files.add(filename)
 
-    # Procesar solo los archivos que no han sido ejecutados
-    for file in os.listdir('./models/uvl/'):
-        if file in processed_files:
-            print(f'Skipping already processed file: {file}')
-            continue
+    all_files = [file for file in os.listdir('./models/uvl/') if file.endswith('.uvl')]
+    files_to_process = [file for file in all_files if file not in processed_files]
 
-        print(f'Processing file: {file}')
+    print(f"\n🧪 Processing {len(files_to_process)} of {len(all_files)} total files...\n")
+
+    pbar = tqdm(files_to_process, desc="Running experiments", unit="file")
+    for file in pbar:
+        pbar.set_postfix(file=file)
+
         dm = DiscoverMetamodels()
         feature_model = dm.use_transformation_t2m('./models/uvl/' + file, 'fm')
         configurator_metamodel = FmToConfigurator(feature_model).transform()
         configure_operation = Configure().execute(configurator_metamodel)
 
-        # Operación de configuración
         start_time = time.perf_counter()
 
         while configure_operation.next_question():
@@ -67,13 +67,11 @@ def run_experiments():
         end_time = time.perf_counter()
         elapsed_time = end_time - start_time
 
-        # Guardar en CSV
         with open(results_file, 'a') as f:
             f.write(f'{file},{elapsed_time}\n')
-        print(f'File: {file}, elapsed time: {elapsed_time}')
 
-
-
+        # Optional: print this line only if needed
+        # print(f'File: {file}, elapsed time: {elapsed_time}')
 
 def plot_time_vs_features(csv_path):
 	# Load the CSV file
@@ -135,10 +133,9 @@ def plot_time_vs_cross_tree(csv_path):
 	plt.show()
 
 
-def print_charts():
-    plot_time_vs_features('./results.csv')
-    plot_time_vs_cross_tree('./results.csv')
-
+def print_charts(csv_path: str = 'results.csv'):
+    plot_time_vs_features(csv_path)
+    plot_time_vs_cross_tree(csv_path)
 
 
 def main():
