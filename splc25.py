@@ -35,7 +35,7 @@ def xml_to_uvl():
             feature_model = dm.use_transformation_t2m('./models/betty/'+file,'fm')
             dm.use_transformation_m2t(feature_model,'./models/uvl/'+file.split('/')[-1].split('.')[0]+'.uvl')
 
-def run_experiments(results_file: str = 'results.csv'):
+def run_experiments(results_file: str = 'results.csv', subset: str = 'all'):
     processed_files = set()
 
     if os.path.exists(results_file):
@@ -46,6 +46,13 @@ def run_experiments(results_file: str = 'results.csv'):
 
     all_files = [file for file in os.listdir('./models/uvl/') if file.endswith('.uvl')]
     files_to_process = [file for file in all_files if file not in processed_files]
+
+    if subset == 'minimal':
+        pattern = re.compile(r"(\d+)-\d+-\d+\.uvl")
+        files_to_process = [
+            file for file in files_to_process
+            if pattern.match(file) and int(pattern.match(file).group(1)) <= 2000
+        ]
 
     print(f"\n🧪 Processing {len(files_to_process)} of {len(all_files)} total files...\n")
 
@@ -174,16 +181,30 @@ def main():
              "  print_charts     Generate charts from results.csv"
     )
 
+    parser.add_argument(
+        "--file", "-f",
+        type=str,
+        default="results.csv",
+        help="CSV file to save or read results from (default: results.csv)"
+    )
+
+    parser.add_argument(
+        "--set",
+        type=str,
+        choices=["all", "minimal"],
+        default="all",
+        help="Subset of models to process (e.g., 'minimal' for ≤1000 features)"
+    )
+
     args = parser.parse_args()
 
     if args.action == "xml_to_uvl":
         xml_to_uvl()
     elif args.action == "run_experiments":
-        run_experiments()
+        run_experiments(results_file=args.file, subset=args.set)
     elif args.action == "print_charts":
-        print_charts()
-    else:
-        print("Unknown action. Use --help for options.")
+        print_charts(csv_path=args.file)
+
 
 
 if __name__ == "__main__":
