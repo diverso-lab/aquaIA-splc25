@@ -80,6 +80,35 @@ def run_experiments(results_file: str = 'results.csv', subset: str = 'all'):
         # Optional: print this line only if needed
         # print(f'File: {file}, elapsed time: {elapsed_time}')
 
+def configure_cdi(results_file: str = 'results-cdi.csv', iterations: int = 5):
+    file = 'CDI.uvl'
+    elapsed_times = []
+    pbar = tqdm(range(iterations), desc="Configuring model", unit="iteration")
+
+    for iteration in pbar:
+        pbar.set_postfix(iteration=iteration)
+
+        dm = DiscoverMetamodels()
+        feature_model = dm.use_transformation_t2m('./models/cdi/' + file, 'fm')
+        configurator_metamodel = FmToConfigurator(feature_model).transform()
+        configure_operation = Configure().execute(configurator_metamodel)
+
+        start_time = time.perf_counter()
+
+        while configure_operation.next_question():
+            if configure_operation.get_possible_options():
+                configure_operation.answer_question([0])
+
+        end_time = time.perf_counter()
+        elapsed_time = end_time - start_time
+        elapsed_times.append(elapsed_time)
+
+        with open(results_file, 'a') as f:
+            f.write(f'{file} - Iteration {iteration},{elapsed_time}\n')
+    
+    with open(results_file, 'a') as f:
+        f.write(f'{file} - Average ({iterations} iterations),{sum(elapsed_times)/len(elapsed_times)}\n')
+
 def plot_time_vs_features(csv_path):
     # Load the CSV file
     df = pd.read_csv(csv_path, header=None, names=["filename", "elapsed_time"])
@@ -174,11 +203,13 @@ def main():
 
     parser.add_argument(
         "action",
-        choices=["xml_to_uvl", "run_experiments", "print_charts"],
+        choices=["xml_to_uvl", "run_experiments", "print_charts", "configure_cdi"],
         help="Action to perform:\n"
              "  xml_to_uvl       Convert .xml files to .uvl\n"
              "  run_experiments  Run configuration experiments\n"
-             "  print_charts     Generate charts from results.csv"
+             "  print_charts     Generate charts from results.csv\n"
+             "  configure_cdi    Run CDI configuration experiment"
+             
     )
 
     parser.add_argument(
@@ -196,6 +227,13 @@ def main():
         help="Subset of models to process (e.g., 'minimal' for ≤1000 features)"
     )
 
+    parser.add_argument(
+        "--iterations", "-i",
+        type=int,
+        default=5,
+        help="Number of iterations to configure CDI model to obtain mean value (default: 5)"
+    )
+
     args = parser.parse_args()
 
     if args.action == "xml_to_uvl":
@@ -204,6 +242,8 @@ def main():
         run_experiments(results_file=args.file, subset=args.set)
     elif args.action == "print_charts":
         print_charts(csv_path=args.file)
+    elif args.action == "configure_cdi":
+        configure_cdi(results_file=args.file, iterations=args.iterations)
 
 
 

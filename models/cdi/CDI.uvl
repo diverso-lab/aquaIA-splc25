@@ -1,0 +1,63 @@
+features
+	"AquaIA: crops"
+		mandatory
+			Crop
+				alternative
+					Lettuce
+					Tomato
+			"Configuration constants"
+				mandatory
+					"Soil type"
+						alternative
+							Sandy
+							SandyLoam
+							Silty
+							ClayLoam
+							Clay
+					"Base temperature"
+						alternative
+							LowerThreshold14C
+							LowerThreshold15C
+							LowerThreshold16C
+					"Threshold temperature"
+						alternative
+							UpperThreshold29C
+							UpperThreshold30C
+							UpperThreshold28C
+					"Linear distance between drippers"
+						alternative
+							Distance50cm
+							Distance100cm
+					"Dripper flow rate"
+						alternative
+							DripperFlowRate1p6Lh
+							DripperFlowRate2Lh
+					"Planting date"
+						alternative
+							Today
+							OtherDate
+			"Output variables"
+				or
+					GDD
+					SGDD
+					Coverage
+					Kc
+					ETc
+					WaterBalance
+					DeficitIrrigation
+			"Input variables"
+				optional
+					DailyTMax
+					DailyTMin
+					ETo
+					Precipitation
+					SoilPotential
+					WeatherForecast
+constraints
+	GDD => DailyTMax & DailyTMin
+	SGDD => GDD
+	Coverage => SGDD
+	Kc => Coverage & ETo
+	ETc => Kc
+	WaterBalance => ETc & Precipitation
+	DeficitIrrigation => WaterBalance & SoilPotential
